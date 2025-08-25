@@ -1,5 +1,7 @@
 package com.fonseca.algacomments.moderationService.domain.service;
 
+import com.fonseca.algacomments.moderationService.api.model.ModerationInput;
+import com.fonseca.algacomments.moderationService.api.model.ModerationOutput;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -8,28 +10,31 @@ import java.util.Set;
 
 @Service
 public class ModerationService {
-    private static final List<String> BANNED_WORDS = List.of("ódio", "xingamento", "php");
 
-    public com.fonseca.algacomments.moderationService.api.model.ModerationOutput moderate(com.fonseca.algacomments.moderationService.api.model.ModerationInput request) {
+    private final OrganizedModerationService organizedModerationService;
+
+    public ModerationService(OrganizedModerationService organizedModerationService) {
+        this.organizedModerationService = organizedModerationService;
+    }
+
+    public boolean isCommentAllowed(String comment) {
+        return !organizedModerationService.containsProhibitedWord(comment);
+    }
+
+    public ModerationOutput moderate(ModerationInput request) {
         String text = request.getText().toLowerCase();
 
-        Set<String> bannedWordsFound = new HashSet<>();
-        for (String word : BANNED_WORDS) {
-            if (text.contains(word.toLowerCase())) {
-                bannedWordsFound.add(word);
-            }
-        }
-
-        if (!bannedWordsFound.isEmpty()) {
-            return com.fonseca.algacomments.moderationService.api.model.ModerationOutput.builder()
+        if (organizedModerationService.containsProhibitedWord(text)) {
+            var prohibitedWords = organizedModerationService.findProhibitedWords(text);
+            return ModerationOutput.builder()
                     .approved(false)
-                    .reason("Contém palavras proibidas: " + bannedWordsFound)
+                    .reason("Contém palavras proibidas: " + prohibitedWords)
                     .build();
         }
 
-        return com.fonseca.algacomments.moderationService.api.model.ModerationOutput.builder()
+        return ModerationOutput.builder()
                 .approved(true)
-                .reason("Comentário aprovado não palavras proibidas")
+                .reason("Comentário aprovado, não contém palavras proibidas")
                 .build();
     }
 }
