@@ -4,10 +4,13 @@ import com.fonseca.algacomments.moderationService.api.model.ModerationInput;
 import com.fonseca.algacomments.moderationService.api.model.ModerationOutput;
 import com.fonseca.algacomments.moderationService.domain.service.ModerationService;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.time.Duration;
 
 @RestController
 @RequestMapping("/api/moderate")
@@ -17,7 +20,9 @@ public class ModerationController {
     private final ModerationService moderationService;
 
     @PostMapping
+    @SneakyThrows
     public ModerationOutput moderate(@RequestBody ModerationInput request) {
+        //Thread.sleep(Duration.ofSeconds(10));
         return moderationService.moderate(request);
     }
 }
